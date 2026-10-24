@@ -1,0 +1,657 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Carnet du Chiot</title>
+<meta name="description" content="Programme d'éducation, planning de la journée et rappels pour un chiot golden retriever.">
+<meta name="theme-color" content="#F2F4EC" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#121713" media="(prefers-color-scheme: dark)">
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="icon" href="/icon-192.png" type="image/png">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Carnet Chiot">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&display=swap">
+<style>
+/* Layout : app mobile d'abord, en-tête collant + onglets, cartes d'exercices du jour empilées, max 720px */
+:root{
+  --bg:#F2F4EC; --surface:#FFFFFF; --ink:#1E2922; --muted:#5C6A60; --line:#D7DECF;
+  --honey:#B97A12; --honey-soft:#F5E6C2; --leaf:#2F7A52; --leaf-soft:#DCEFE2;
+  --c-nom:#B97A12; --c-mors:#8A4A78; --c-laisse:#2F7A52; --c-prop:#36689A; --c-bonus:#5C6A60; --c-soc:#1E7B78; --c-maison:#5559A6;
+  --fur:#D9A441; --fur-dark:#AE7620; --fur-light:#F0CC7E; --nose:#2A1E14; --human:#7D8B81; --scene:#E8EEE1; --box:#C69B62;
+  --display:"Bricolage Grotesque", "Avenir Next", "Segoe UI", sans-serif;
+  --body:"Atkinson Hyperlegible", "Segoe UI", system-ui, sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#121713; --surface:#1B221D; --ink:#E7EDE4; --muted:#A0ADA3; --line:#2C3730;
+  --honey:#E4A93F; --honey-soft:#3A2E14; --leaf:#5DBA87; --leaf-soft:#1D3527;
+  --c-nom:#E4A93F; --c-mors:#C98BB8; --c-laisse:#5DBA87; --c-prop:#7FAEDD; --c-bonus:#A0ADA3; --c-soc:#5CC2BE; --c-maison:#A2A6EC;
+  --fur:#D9A441; --fur-dark:#A87224; --fur-light:#EBC676; --nose:#1C130C; --human:#8E9D92; --scene:#19211B; --box:#9C7646;
+  color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#121713; --surface:#1B221D; --ink:#E7EDE4; --muted:#A0ADA3; --line:#2C3730;
+  --honey:#E4A93F; --honey-soft:#3A2E14; --leaf:#5DBA87; --leaf-soft:#1D3527;
+  --c-nom:#E4A93F; --c-mors:#C98BB8; --c-laisse:#5DBA87; --c-prop:#7FAEDD; --c-bonus:#A0ADA3; --c-soc:#5CC2BE; --c-maison:#A2A6EC;
+  --fur:#D9A441; --fur-dark:#A87224; --fur-light:#EBC676; --nose:#1C130C; --human:#8E9D92; --scene:#19211B; --box:#9C7646;
+  color-scheme:dark}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.5;
+  padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px));padding-block:0 48px}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top, 0px);z-index:10;background:var(--bg)}
+.wrap{max-width:720px;margin:0 auto}
+h1,h2,h3{font-family:var(--display);text-wrap:balance;margin:0;line-height:1.15}
+a{color:var(--honey)}
+button{font:inherit;color:inherit}
+:focus-visible{outline:3px solid var(--honey);outline-offset:2px}
+
+header.top{position:sticky;top:env(safe-area-inset-top, 0px);z-index:5;background:var(--bg);padding-top:14px}
+.id{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.id h1{font-size:1.9rem;font-weight:800;letter-spacing:-.01em}
+.age{font-size:.82rem;font-weight:700;background:var(--honey-soft);color:var(--ink);padding:3px 10px;border-radius:99px;font-variant-numeric:tabular-nums}
+.gear{margin-left:auto;border:1px solid var(--line);background:var(--surface);border-radius:10px;padding:6px 12px;cursor:pointer;font-size:.88rem}
+nav.tabs{display:flex;gap:4px;margin-top:12px;border-bottom:1px solid var(--line);overflow-x:auto;scrollbar-width:none}
+nav.tabs button{border:0;background:none;padding:10px 12px;cursor:pointer;font-weight:700;color:var(--muted);border-bottom:3px solid transparent;white-space:nowrap}
+nav.tabs button[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--honey)}
+
+.settings{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px;margin-top:14px;display:grid;gap:12px}
+.settings .row{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px}
+label{display:grid;gap:4px;font-size:.85rem;font-weight:700;color:var(--muted)}
+input{font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:8px 10px;width:100%}
+.btn{border:0;background:var(--ink);color:var(--bg);border-radius:10px;padding:9px 16px;font-weight:700;cursor:pointer;justify-self:start}
+.example{font-size:.85rem;background:var(--honey-soft);border-radius:10px;padding:10px 12px}
+
+section.panel{padding-top:18px;display:grid;gap:18px}
+.daybar{display:flex;align-items:center;gap:8px}
+.daybar button{border:1px solid var(--line);background:var(--surface);border-radius:10px;width:40px;height:40px;cursor:pointer;font-size:1.1rem}
+.daybar .lbl{flex:1;min-width:0}
+.daybar .lbl small{display:block;color:var(--muted);font-size:.8rem;text-transform:uppercase;letter-spacing:.08em;font-weight:700}
+.daybar .lbl strong{font-family:var(--display);font-size:1.35rem}
+.today-link{font-size:.8rem;border:0;background:none;color:var(--honey);cursor:pointer;font-weight:700;padding:0}
+
+.week{border-left:4px solid var(--honey);padding:2px 0 2px 14px}
+.week h2{font-size:1.25rem}
+.week p{margin:4px 0 0;color:var(--muted)}
+.dots{display:flex;gap:5px;margin-top:10px}
+.dots span{width:22px;height:8px;border-radius:4px;background:var(--line)}
+.dots span.full{background:var(--leaf)}
+.dots span.part{background:var(--honey)}
+.dots span.cur{outline:2px solid var(--ink);outline-offset:1px}
+
+.metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.metric{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:10px 12px;min-width:0}
+.metric b{display:block;font-family:var(--display);font-size:1.35rem;font-variant-numeric:tabular-nums}
+.metric span{font-size:.78rem;color:var(--muted);line-height:1.3;display:block}
+@media (max-width:460px){.metrics{grid-template-columns:1fr 1fr}.metrics .metric:last-child{grid-column:span 2}}
+
+.progress{font-size:.9rem;color:var(--muted);font-weight:700}
+.cards{display:grid;gap:12px}
+.ex{background:var(--surface);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+.ex.done{border-color:var(--leaf);background:var(--leaf-soft)}
+.ex-head{display:flex;gap:12px;align-items:flex-start;padding:14px 14px 10px}
+.check{flex:none;width:30px;height:30px;border-radius:50%;border:2px solid var(--line);background:var(--bg);cursor:pointer;display:grid;place-items:center;margin-top:2px}
+.ex.done .check{background:var(--leaf);border-color:var(--leaf);color:var(--surface)}
+.check svg{width:16px;height:16px;opacity:0}
+.ex.done .check svg{opacity:1}
+.ex-title{flex:1;min-width:0}
+.tag{font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em}
+.ex-title h3{font-size:1.1rem;margin-top:2px}
+.dur{font-size:.8rem;color:var(--muted);font-variant-numeric:tabular-nums}
+.ex details{padding:0 14px 14px 56px}
+.ex summary{cursor:pointer;font-weight:700;font-size:.9rem;color:var(--muted)}
+.ex ol{margin:8px 0 0;padding-left:20px;display:grid;gap:6px}
+.hint{margin:10px 0 0;font-size:.9rem;font-style:italic;color:var(--muted)}
+
+.tip{background:var(--honey-soft);border-radius:14px;padding:14px 16px}
+.tip h3{font-size:.8rem;text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px}
+.tip p{margin:0}
+
+.prog{display:grid;gap:10px}
+.pw{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px 14px;display:grid;grid-template-columns:auto 1fr;gap:4px 14px;cursor:pointer;text-align:left;width:100%}
+.pw.cur{border-color:var(--honey);box-shadow:inset 4px 0 0 var(--honey)}
+.pw .n{font-family:var(--display);font-weight:800;font-size:1.4rem;color:var(--honey);grid-row:span 2;font-variant-numeric:tabular-nums}
+.pw h3{font-size:1.05rem}
+.pw ul{margin:0;padding:0;list-style:none;font-size:.86rem;color:var(--muted);display:flex;flex-wrap:wrap;gap:4px 12px}
+
+.sheet{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px}
+.sheet h2{font-size:1.3rem;margin-bottom:4px}
+.sheet .lead{margin:0 0 10px;color:var(--muted)}
+.sheet h3{font-size:.95rem;margin:14px 0 6px}
+.sheet ul{margin:0;padding-left:20px;display:grid;gap:5px}
+.sheet .src{font-size:.8rem;color:var(--muted);margin-top:12px}
+.no li::marker{content:"✕  ";color:var(--c-mors)}
+.yes li::marker{content:"✓  ";color:var(--leaf)}
+
+.games{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px}
+.game{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px 16px;min-width:0}
+.game h3{font-size:1.08rem}
+.game p{margin:6px 0 0;font-size:.95rem}
+.game .meta{font-size:.78rem;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.06em}
+
+.sources{display:grid;gap:10px}
+.sources li{margin-bottom:6px}
+.note{font-size:.88rem;color:var(--muted)}
+.srcline{margin:8px 0 0;font-size:.78rem;color:var(--muted);font-weight:700}
+.signs{margin:12px 0 0;font-size:.92rem;background:var(--bg);border-radius:10px;padding:10px 12px}
+.debate{margin-top:14px;border:1px dashed var(--c-mors);border-radius:10px;padding:10px 12px}
+.debate h3{margin:0 0 4px;color:var(--c-mors)} .debate p{margin:0;font-size:.92rem}
+.crate{fill:none;stroke:var(--muted);stroke-width:2}
+svg.scene{display:block;width:calc(100% - 28px);max-width:420px;height:auto;margin:0 14px 12px;border-radius:12px;background:var(--scene);cursor:pointer;overflow:hidden}
+.game svg.scene{width:100%;margin:10px 0 0}
+.fu{fill:var(--fur)} .fd{fill:var(--fur-dark)} .fl{fill:var(--fur-light)} .no{fill:var(--nose)}
+.tl{fill:none;stroke:var(--fur);stroke-width:5;stroke-linecap:round}
+.ln{fill:none;stroke:var(--nose);stroke-width:1.5;stroke-linecap:round}
+.toy{fill:var(--c-mors)} .ball{fill:var(--c-soc)} .tr{fill:var(--honey);stroke:var(--fur-dark);stroke-width:1}
+.hm{fill:var(--human)} .hs{fill:none;stroke:var(--human);stroke-width:5;stroke-linecap:round}
+.gr{stroke:var(--line);stroke-width:2} .gd{stroke:var(--muted);stroke-width:2;stroke-linecap:round;opacity:.5}
+.bb rect{fill:var(--surface);stroke:var(--ink);stroke-width:1.2} .bb text{fill:var(--ink);font:700 11px var(--body)}
+.lsh{fill:none;stroke:var(--c-laisse);stroke-width:2.5;stroke-linecap:round} .hn{stroke:var(--c-laisse);stroke-width:3.5;stroke-linecap:round;fill:none}
+.rope{stroke:var(--c-mors);stroke-width:3;stroke-linecap:round}
+.grass{fill:var(--leaf)} .gblade{stroke:var(--leaf);stroke-width:2;stroke-linecap:round}
+.obj{fill:var(--muted)} .door{fill:var(--line)} .frame{fill:none;stroke:var(--muted);stroke-width:2}
+.z{fill:var(--muted);font:700 13px var(--display)} .wave{fill:none;stroke:var(--muted);stroke-width:2;stroke-linecap:round}
+.boxf{fill:var(--box)} .paper{fill:var(--surface);stroke:var(--muted);stroke-width:.8} .heart{fill:var(--c-mors)}
+.mat{fill:var(--honey-soft);stroke:var(--honey);stroke-width:1.5}
+@media (prefers-reduced-motion:no-preference){.ex,.check{transition:background .2s,border-color .2s}}
+/* Planning, carte « prochaine étape », rappels */
+.next{display:flex;align-items:center;gap:12px;width:100%;text-align:left;border:1px solid var(--honey);background:var(--honey-soft);border-radius:14px;padding:10px 14px;cursor:pointer}
+.next .t{font-family:var(--display);font-weight:800;font-size:1.3rem;font-variant-numeric:tabular-nums}
+.next small{display:block;font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}
+.next .go{margin-left:auto;font-weight:700;color:var(--honey);white-space:nowrap;font-size:.88rem}
+.tl{list-style:none;margin:0;padding:0;display:grid;gap:0;position:relative}
+.ev{display:grid;grid-template-columns:52px 28px 1fr;gap:8px;align-items:start;padding:9px 0;border-bottom:1px solid var(--line)}
+.ev .t{font-family:var(--display);font-weight:700;font-variant-numeric:tabular-nums;padding-top:1px}
+.ev .ico{font-size:1.1rem;line-height:1.4;text-align:center}
+.ev b{display:block;line-height:1.3}
+.ev p{margin:2px 0 0;font-size:.88rem;color:var(--muted)}
+.ev.repas .t{color:var(--honey)} .ev.pipi .t{color:var(--c-prop)} .ev.educ .t{color:var(--c-laisse)} .ev.sieste .t{color:var(--c-maison)} .ev.nuit .t{color:var(--muted)}
+.ev.past{opacity:.45}
+.ev.now{background:var(--honey-soft);border-radius:10px;border-bottom-color:transparent;padding-inline:8px;margin-inline:-8px;box-shadow:inset 4px 0 0 var(--honey)}
+.ev.night{background:var(--scene)}
+.notif{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px 16px;display:grid;gap:8px}
+.notif h3{font-size:.8rem;text-transform:uppercase;letter-spacing:.08em}
+.notif p{margin:0}
+.notif .msg{font-weight:700;color:var(--leaf)}
+.toggles{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:6px}
+.tg{display:flex;align-items:center;gap:8px;font-size:.95rem;font-weight:400;color:var(--ink);background:var(--bg);border-radius:10px;padding:8px 10px;cursor:pointer}
+.tg input{width:20px;height:20px;accent-color:var(--leaf);flex:none}
+.row-btn{display:flex;gap:8px;flex-wrap:wrap}
+.btn.ghost{background:none;color:var(--ink);border:1px solid var(--line)}
+.btn:disabled{opacity:.5}
+</style>
+
+</head>
+<body>
+<div class="wrap">
+<header class="top">
+  <div class="id">
+    <h1 id="pupName">Buck</h1>
+    <span class="age" id="ageChip">–</span>
+    <button class="gear" id="gearBtn" aria-expanded="false" aria-controls="settings">Mon chiot</button>
+  </div>
+  <form class="settings" id="settings" hidden>
+    <div class="row">
+      <label for="fName">Prénom<input id="fName" type="text" maxlength="20" autocomplete="off"></label>
+      <label for="fBirth">Date de naissance<input id="fBirth" type="date"></label>
+      <label for="fArrival">Arrivée à la maison<input id="fArrival" type="date"></label>
+      <label for="fWake">Heure du lever<input id="fWake" type="time"></label>
+      <label for="fBed">Heure du coucher<input id="fBed" type="time"></label>
+    </div>
+    <button class="btn" type="submit">Enregistrer</button>
+  </form>
+  <nav class="tabs" role="tablist">
+    <button role="tab" data-tab="today" aria-selected="true" id="tab-today">Aujourd'hui</button>
+    <button role="tab" data-tab="plan" aria-selected="false" id="tab-plan">Planning</button>
+    <button role="tab" data-tab="prog" aria-selected="false" id="tab-prog">Programme</button>
+    <button role="tab" data-tab="sheets" aria-selected="false" id="tab-sheets">Fiches</button>
+    <button role="tab" data-tab="games" aria-selected="false" id="tab-games">Jeux</button>
+    <button role="tab" data-tab="sources" aria-selected="false" id="tab-sources">Sources</button>
+  </nav>
+</header>
+
+<p class="example" id="exampleNote" hidden>Dates approximatives pour Buck. Touche <b>Mon chiot</b> pour mettre sa vraie date de naissance, son jour d'arrivée et vos heures de lever et de coucher : tout se recalcule.</p>
+
+<section class="panel" id="p-today"></section>
+<section class="panel" id="p-plan" hidden></section>
+<section class="panel" id="p-prog" hidden></section>
+<section class="panel" id="p-sheets" hidden></section>
+<section class="panel" id="p-games" hidden></section>
+<section class="panel" id="p-sources" hidden></section>
+</div>
+
+<script src="shared.js"></script>
+<script>
+(function(){
+const C=window.CHIOT;
+const {THEMES,EX,PLAN,SLOTS,WEEKS,SOC,GAMES,TIPS,SHEETS,SOURCES,CATS,DAY}=C;
+
+/* ---------- animations ---------- */
+const D=5;
+const R=x=>+(+x).toFixed(3);
+function K(a){return a.map(R).join(";")}
+function TR(vals,keys,ex=""){return `<animateTransform attributeName="transform" type="translate" values="${vals.join(";")}" keyTimes="${K(keys)}" dur="${D}s" repeatCount="indefinite" ${ex}/>`}
+function FLIP(vals,keys){return `<animateTransform attributeName="transform" type="scale" values="${vals.join(";")}" keyTimes="${K(keys)}" dur="${D}s" repeatCount="indefinite" calcMode="discrete"/>`}
+function AV(attr,vals,keys){return `<animate attributeName="${attr}" values="${vals.join(";")}" keyTimes="${K(keys)}" dur="${D}s" repeatCount="indefinite"/>`}
+function VIS(s,e){return AV("opacity",[0,0,1,1,0,0],[0,s,s+.01,e,e+.01,1])}
+function HIDE(s,e){return AV("opacity",[1,1,0,0,1,1],[0,s,s+.01,e,e+.01,1])}
+const FADE=AV("opacity",[0,1,1,0],[0,.05,.93,1]);
+function nameTxt(){const n=(pup.name||"Toi").trim();return esc(n.length>12?n.slice(0,11)+"…":n)}
+function bubble(x,y,t,s,e){const w=t.replace(/&[a-z]+;/g,"x").length*6.4+16;return `<g class="bb" opacity="0">${VIS(s,e)}<rect x="${R(x-w/2)}" y="${y-11}" width="${R(w)}" height="20" rx="10"/><text x="${x}" y="${y+3}" text-anchor="middle">${t}</text></g>`}
+function treat(vals,keys,s,e){return `<circle class="tr" r="3.5" opacity="0">${VIS(s,e)}${TR(vals,keys)}</circle>`}
+function ground(){return `<line class="gr" x1="0" y1="95" x2="240" y2="95"/>`}
+function wrap(inner,label){return `<svg class="scene" viewBox="0 0 240 110" role="img" aria-label="Animation : ${esc(label)} (touche pour mettre en pause)">${inner}</svg>`}
+function person(x,hx,hy,o={}){
+  const c=o.crouch, hy0=c?52:34, by=c?62:45, bh=c?20:30;
+  const arm=o.armX?`<line class="hs" x1="${x+5}" y1="${by+5}" x2="${hx}" y2="${hy}">${AV("x2",o.armX,o.keys)}${AV("y2",o.armY,o.keys)}</line><circle class="hm" r="4.5" cx="${hx}" cy="${hy}">${AV("cx",o.armX,o.keys)}${AV("cy",o.armY,o.keys)}</circle>`
+    :`<line class="hs" x1="${x+5}" y1="${by+5}" x2="${hx}" y2="${hy}"/><circle class="hm" cx="${hx}" cy="${hy}" r="4.5"/>`;
+  const legs=c?`<path class="hs" d="M${x-4},${by+bh-2} l10,8 l-6,9"/><path class="hs" d="M${x+3},${by+bh-2} l10,4 l0,13"/>`
+    :`<line class="hs" x1="${x-4}" y1="74" x2="${x-5}" y2="94"/><line class="hs" x1="${x+4}" y1="74" x2="${x+5}" y2="94"/>`;
+  return `<g>${legs}<rect class="hm" x="${x-9}" y="${by}" width="18" height="${bh}" rx="8"/><circle class="hm" cx="${x}" cy="${hy0}" r="9"/>${arm}</g>`;
+}
+function head(cx,cy,o={}){
+  const eye=o.sleep?`<path class="ln" d="M${cx+1},${cy-3} q2.5,2 5,0"/>`:`<circle class="no" cx="${cx+3}" cy="${cy-3.5}" r="1.8"/>`;
+  const item=o.toy?`<rect class="toy" x="${cx+12}" y="${cy+5}" width="11" height="8" rx="3"/>`:o.ball?`<circle class="ball" cx="${cx+16}" cy="${cy+9}" r="4.5"/>`:"";
+  return `<circle class="fu" cx="${cx}" cy="${cy}" r="11"/><ellipse class="fl" cx="${cx+9}" cy="${cy+3}" rx="7.5" ry="5.5"/><circle class="no" cx="${cx+15}" cy="${cy+1.5}" r="2.4"/>${eye}<ellipse class="fd" cx="${cx-5}" cy="${cy+2}" rx="4.5" ry="8" transform="rotate(15 ${cx-5} ${cy+2})"/>${item}`;
+}
+function tail(x,y,d,sp=.5){return `<g><path class="tl" d="M${x},${y} ${d}"/><animateTransform attributeName="transform" type="rotate" values="-14 ${x} ${y};14 ${x} ${y};-14 ${x} ${y}" dur="${sp}s" repeatCount="indefinite"/></g>`}
+function leg(x,cls,trot,ph){const r=`<rect class="${cls}" x="${x}" y="4" width="6" height="16" rx="3"/>`;
+  return trot?`<g>${r}<animateTransform attributeName="transform" type="rotate" values="${ph?"18":"-18"} ${x+3} 4;${ph?"-18":"18"} ${x+3} 4;${ph?"18":"-18"} ${x+3} 4" dur=".4s" repeatCount="indefinite"/></g>`:r}
+function dog(pose,o={}){
+  if(pose==="sit") return `<g>${tail(-18,14,"q-8,2 -14,-1",o.wag||.5)}<rect class="fd" x="0" y="2" width="6" height="18" rx="3"/><ellipse class="fu" cx="-8" cy="8" rx="13" ry="12"/><ellipse class="fu" cx="3" cy="-3" rx="10" ry="15" transform="rotate(-20 3 -3)"/><rect class="fu" x="6" y="2" width="6" height="18" rx="3"/><ellipse class="fd" cx="-3" cy="18" rx="8" ry="3"/>${head(10,-22,o)}</g>`;
+  if(pose==="lie") return `<g>${o.sleep?"":tail(-24,12,"q-8,4 -14,6",.9)}${o.sleep?`<path class="tl" d="M-24,12 q-8,4 -14,6"/>`:""}<ellipse class="fu" cx="-2" cy="11" rx="24" ry="9"/><rect class="fu" x="10" y="15" width="20" height="5" rx="2.5"/>${head(20,2,o)}</g>`;
+  const hx=pose==="sniff"?26:20, hy=pose==="sniff"?0:-14;
+  return `<g>${tail(-20,-5,"q-9,-5 -12,-15",o.wag||.5)}${leg(-17,"fd",o.trot,1)}${leg(9,"fd",o.trot,0)}<ellipse class="fu" cx="0" cy="0" rx="22" ry="12"/>${o.harness?`<path class="hn" d="M-1,-12 L1,12"/>`:""}${leg(-12,"fu",o.trot,0)}${leg(14,"fu",o.trot,1)}${head(hx,hy,o)}</g>`;
+}
+function at(x,y,inner,flip){return `<g transform="translate(${x},${y})">${flip?`<g transform="scale(-1,1)">${inner}</g>`:inner}</g>`}
+function mover(vals,keys,inner,ex=""){return `<g>${TR(vals,keys)}${ex}${inner}</g>`}
+
+const SCENES={
+ name(){const N=nameTxt();return ground()+person(40,58,62)+bubble(62,18,N+" !",.2,.42)
+   +`<g transform="translate(150,75)"><g>${FLIP(["1 1","-1 1","1 1"],[0,.38,.95])}${dog("stand")}</g></g>`
+   +treat(["58 62","58 62","121 64","121 64"],[0,.55,.68,1],.55,.78)+bubble(100,30,"Oui !",.6,.86)},
+ ping(){const N=nameTxt();return ground()+person(30,46,60)
+   +treat(["46 60","120 18","196 92","196 92"],[0,.08,.16,1],.01,.3)
+   +mover(["80 75","80 75","170 75","170 75","80 75","80 75"],[0,.05,.28,.45,.72,1],`<g>${FLIP(["1 1","-1 1","1 1"],[0,.45,.98])}${dog("stand",{trot:1})}</g>`)
+   +bubble(55,16,N,.33,.46)+treat(["50 62","50 62"],[0,1],.72,.9)+bubble(110,22,"Oui !",.74,.92)},
+ come(door){const N=nameTxt();return ground()+person(40,60,66,{crouch:1})
+   +(door?`<rect class="door" x="52" y="30" width="18" height="65" rx="2"/><rect class="frame" x="52" y="30" width="18" height="65" rx="2"/>`:"")
+   +bubble(door?96:72,18,N+(door?" ?":", viens !"),.03,.22)
+   +mover(["210 75","210 75","90 75","90 75"],[0,.2,.5,1],at(0,0,dog("stand",{trot:1}),1),FADE)
+   +treat(["62 66","62 66"],[0,1],.52,.82)+bubble(130,26,"Bravo !",.55,.86)},
+ tug(){return ground()+person(40,74,66)
+   +`<line class="rope" x1="74" y1="66" y2="70" x2="86">${AV("x2",[86,92,86,92,86,86],[0,.12,.25,.37,.5,1])}${HIDE(.62,.97)}</line>`
+   +`<g>${HIDE(.62,.97)}${mover(["120 75","126 75","120 75","126 75","120 75","120 75"],[0,.12,.25,.37,.5,1],at(0,0,dog("stand",{toy:1,wag:.3}),1))}</g>`
+   +`<g opacity="0">${VIS(.62,.97)}${at(120,75,dog("sit"),1)}<rect class="toy" x="66" y="70" width="11" height="8" rx="3"/></g>`
+   +bubble(60,18,"Donne",.5,.64)+treat(["74 66","74 66","104 57","104 57"],[0,.66,.74,1],.66,.8)+bubble(150,22,"Oui !",.7,.93)},
+ pause(){return ground()+person(40,84,64)
+   +mover(["125 75","113 75","113 75","138 75","138 75","118 75","118 75","125 75"],[0,.1,.22,.32,.6,.72,.92,1],at(0,0,dog("stand"),1))
+   +bubble(60,18,"Aïe !",.18,.36)+bubble(170,26,"Pause…",.35,.6)
+   +`<rect class="toy" x="82" y="76" width="11" height="8" rx="3" opacity="0">${VIS(.62,.95)}</rect>`+bubble(70,18,"Le jouet !",.66,.93)},
+ carry(){return ground()+person(212,194,64)
+   +mover(["20 75","150 75","150 75"],[0,.45,1],dog("stand",{toy:1,trot:1,wag:.25}),FADE)
+   +bubble(170,18,"Bravo !",.5,.88)
+   +`<path class="heart" opacity="0" d="M0,3 C-6,-3 -2,-8 0,-4 C2,-8 6,-3 0,3Z">${VIS(.5,.9)}${TR(["185 50","185 32"],[0,1])}</path>`},
+ sleep(){const bars=Array.from({length:11},(_,k)=>`<line class="gd" x1="${60+k*12}" y1="58" x2="${60+k*12}" y2="95"/>`).join("");
+   const z=(b)=>`<text class="z" x="0" y="0" opacity="0">z<animate attributeName="opacity" values="0;1;0" dur="3s" begin="${b}s" repeatCount="indefinite"/><animateTransform attributeName="transform" type="translate" values="145 60;160 28" dur="3s" begin="${b}s" repeatCount="indefinite"/></text>`;
+   return ground()+bars+`<line class="gd" x1="60" y1="58" x2="180" y2="58"/>`
+   +`<g transform="translate(118,75)"><g>${AV("opacity",[1,1],[0,1])}<animateTransform attributeName="transform" type="scale" values="1 1;1 1.04;1 1" dur="2.5s" repeatCount="indefinite"/>${dog("lie",{sleep:1})}</g></g>`+z(0)+z(1)+z(2)},
+ mat(){return ground()+person(40,64,60)+`<rect class="mat" x="95" y="90" width="80" height="7" rx="3"/>`
+   +at(130,75,dog("lie"))+treat(["64 60","64 60","150 88","150 88"],[0,.3,.45,1],.3,.6)+bubble(150,30,"Reste zen…",.5,.9)},
+ tree(){const dash=Array.from({length:12},(_,k)=>`<line class="gd" x1="${k*24}" y1="101" x2="${k*24+10}" y2="101"/>`).join("");
+   const keys=[0,.22,.42,.55,1];
+   return ground()+`<g>${TR(["0 0","-24 0","-24 0","-24 0","-72 0"],keys)}${dash}</g>`+person(60,74,60)
+   +`<path class="lsh" d="M74,60 Q97,92 120,63">${AV("d",["M74,60 Q97,92 120,63","M74,60 Q112,61 150,63","M74,60 Q112,61 150,63","M74,60 Q97,92 120,63","M74,60 Q97,92 120,63"],keys)}</path>`
+   +mover(["120 75","150 75","150 75","120 75","120 75"],keys,`<g>${FLIP(["1 1","-1 1","1 1"],[0,.44,.56])}${dog("stand",{harness:1})}</g>`)
+   +bubble(62,16,"Stop, j'attends",.24,.45)+bubble(62,16,"Oui ! On repart",.58,.84)
+   +treat(["74 60","74 60","118 62","118 62"],[0,.58,.66,1],.58,.72)},
+ sniff(){const cr=[110,150,190].map(cx=>{const t=(cx-78)/160*.9;return `<rect class="obj" x="${cx-9}" y="88" width="18" height="7" rx="3" opacity=".35"/><circle class="tr" cx="${cx}" cy="92" r="3">${AV("opacity",[1,1,0,0],[0,t,t+.01,1])}</circle>`}).join("");
+   return ground()+cr+mover(["40 75","200 75","200 75"],[0,.9,1],dog("sniff",{trot:1}),FADE)+bubble(120,18,"Cherche !",.02,.2)},
+ potty(){return ground()+`<rect class="door" x="18" y="30" width="26" height="65" rx="2"/><rect class="frame" x="18" y="30" width="26" height="65" rx="2"/>`
+   +`<ellipse class="grass" cx="178" cy="96" rx="40" ry="4"/>`+[150,160,172,186,198].map(x=>`<line class="gblade" x1="${x}" y1="95" x2="${x+2}" y2="88"/>`).join("")
+   +person(222,206,62)
+   +`<g>${HIDE(.5,.62)}${mover(["50 75","170 75","170 75"],[0,.3,1],`<g>${FLIP(["1 1","-1 1","1 1","-1 1","1 1"],[0,.32,.38,.44,.5])}${dog("stand",{trot:1})}</g>`,FADE)}</g>`
+   +`<g opacity="0">${VIS(.5,.62)}${at(170,75,dog("sit"))}</g>`
+   +bubble(160,18,"Pipi",.5,.62)+bubble(160,18,"Bravo !",.64,.9)+treat(["206 62","206 62","199 64","199 64"],[0,.64,.7,1],.64,.82)},
+ sit(){const k=[0,.15,.35,.9,1],ax=[98,98,104,104,98],ay=[64,64,44,44,64];
+   return ground()+person(40,98,64,{armX:ax,armY:ay,keys:k})
+   +`<g>${HIDE(.35,.9)}${at(130,75,dog("stand"),1)}</g><g opacity="0">${VIS(.35,.9)}${at(130,75,dog("sit"),1)}</g>`
+   +`<circle class="tr" r="3.5">${TR(["98 60","98 60","104 40","104 40","106 56","106 56"],[0,.15,.35,.42,.48,1])}${AV("opacity",[1,1,0,0,1],[0,.5,.51,.99,1])}</circle>`
+   +bubble(60,16,"Assis",.06,.3)+bubble(170,24,"Oui !",.42,.86)},
+ down(){const k=[0,.15,.38,.9,1],ax=[106,106,100,100,106],ay=[46,46,86,86,46];
+   return ground()+person(40,106,46,{armX:ax,armY:ay,keys:k})
+   +`<g>${HIDE(.38,.9)}${at(130,75,dog("sit"),1)}</g><g opacity="0">${VIS(.38,.9)}${at(130,75,dog("lie"),1)}</g>`
+   +bubble(60,16,"Couché",.06,.32)+bubble(170,30,"Oui !",.42,.86)},
+ fetch(){return ground()+person(30,46,60,{armX:[46,46,40,46,46],armY:[60,60,38,60,60],keys:[0,.05,.08,.14,1]})
+   +`<circle class="ball" r="4.5">${TR(["46 60","46 60","130 12","214 91","214 91","218 69","218 69","146 69","26 69","42 91","42 91"],[0,.08,.2,.32,.42,.46,.479,.48,.8,.85,1])}</circle>`
+   +mover(["60 75","60 75","182 75","182 75","62 75","62 75"],[0,.1,.4,.48,.8,1],`<g>${FLIP(["1 1","-1 1","1 1"],[0,.48,.98])}${dog("stand",{trot:1})}</g>`)
+   +bubble(70,16,"Rapporte !",.04,.2)+bubble(110,22,"Merci !",.84,.97)},
+ watch(){const w=(r,b)=>`<path class="wave" d="M${70+r},${62-r*0.8} q${r*0.6},${r*0.8} 0,${r*1.6}" opacity="0"><animate attributeName="opacity" values="0;1;0" dur="1.5s" begin="${b}s" repeatCount="indefinite"/></path>`;
+   return ground()+`<rect class="obj" x="30" y="70" width="30" height="22" rx="6"/><circle class="obj" cx="36" cy="93" r="3"/><circle class="obj" cx="54" cy="93" r="3"/><path class="wave" d="M45,70 q0,-25 20,-30"/>`
+   +w(6,0)+w(12,.4)+w(18,.8)+person(215,198,62)+at(170,75,dog("sit",{wag:.8}),1)
+   +treat(["198 62","198 62","152 55","152 55"],[0,.45,.55,1],.45,.65)+bubble(150,18,"Bravo, tu observes",.5,.88)},
+ box(){const bit=(x,b)=>`<rect class="paper" width="6" height="5" opacity="0">${VIS(.25+b,.55+b)}${TR([`${x} 76`,`${x} 76`,`${x+(x>150?14:-14)} 40`,`${x+(x>150?18:-18)} 50`],[0,.25+b,.45+b,1])}</rect>`;
+   return ground()+mover(["92 75","108 75","108 75","92 75","92 75"],[0,.2,.6,.75,1],dog("stand"))
+   +`<rect class="boxf" x="130" y="68" width="55" height="27" rx="2"/><path class="fd" d="M130,68 l-8,-9 h10 l6,9z"/>`+bit(150,0)+bit(165,.05)+bit(140,.1)
+   +bubble(100,18,"Trouvé !",.6,.88)},
+ brush(){return ground()+at(130,75,dog("stand",{wag:.3}))
+   +`<g>${TR(["112 52","140 52","112 52"],[0,.5,1],'dur="1.2s"').replace(`dur="${D}s" repeatCount="indefinite" dur="1.2s"`,'dur="1.2s" repeatCount="indefinite"')}<rect class="hm" x="-4" y="-12" width="9" height="12" rx="4"/><rect class="obj" x="-10" y="-1" width="22" height="6" rx="2"/></g>`
+   +`<path class="heart" opacity="0" d="M0,3 C-6,-3 -2,-8 0,-4 C2,-8 6,-3 0,3Z">${VIS(.2,.9)}${TR(["170 50","176 26"],[0,1])}</path>`+bubble(70,18,"Doucement",.1,.9)},
+ crate(){const bars=Array.from({length:6},(_,k)=>`<line class="gd" x1="${112+k*14}" y1="52" x2="${112+k*14}" y2="95"/>`).join("");
+   return ground()+`<rect class="mat" x="116" y="90" width="70" height="5" rx="2"/>`
+   +`<g>${HIDE(.4,.95)}${mover(["30 75","150 75","150 75"],[0,.35,1],dog("stand",{trot:1}),FADE)}</g>`
+   +`<g opacity="0">${VIS(.4,.95)}${at(150,75,dog("lie",{toy:1}))}</g>`
+   +treat(["40 60","95 30","150 88","150 88"],[0,.06,.12,1],.01,.3)
+   +`<rect class="crate" x="105" y="52" width="85" height="43" rx="3"/>`+bars
+   +`<g opacity="0">${VIS(.55,.88)}<line class="crate" x1="190" y1="52" x2="190" y2="95"/><line class="gd" x1="196" y1="58" x2="196" y2="90"/></g>`
+   +bubble(60,18,"Va dans ton coin",.03,.3)+bubble(80,30,"Porte fermée… et c'est bien",.58,.88)},
+ alone(){return ground()+`<rect class="door" x="196" y="30" width="22" height="65" rx="2"/><rect class="frame" x="196" y="30" width="22" height="65" rx="2"/>`
+   +`<rect class="mat" x="45" y="90" width="80" height="5" rx="2"/>`+at(90,75,dog("lie",{toy:1}))
+   +`<g>${TR(["130 0","205 0","205 0","145 0","130 0"],[0,.35,.75,.95,1])}${AV("opacity",[1,1,0,0,1,1],[0,.33,.38,.72,.76,1])}${person(0,12,62)}</g>`
+   +bubble(150,16,"À tout à l'heure",.04,.3)+bubble(110,28,"Tranquille avec son Kong",.4,.7)+bubble(150,16,"Coucou, calmement",.77,.95)},
+ jump(){return ground()+`<rect class="door" x="10" y="30" width="22" height="65" rx="2"/><rect class="frame" x="10" y="30" width="22" height="65" rx="2"/>`
+   +`<g transform="translate(62,0)"><g>${FLIP(["1 1","-1 1","1 1"],[0,.12,.42])}${person(0,12,66)}</g></g>`
+   +`<g>${HIDE(.42,.92)}<g transform="translate(112,75) scale(-1,1)"><g><animateTransform attributeName="transform" type="rotate" values="0 -14 20;-32 -14 20;0 -14 20;-32 -14 20;0 -14 20;0 -14 20" keyTimes="0;.08;.16;.24;.32;1" dur="${D}s" repeatCount="indefinite"/>${dog("stand",{wag:.25})}</g></g></g>`
+   +`<g opacity="0">${VIS(.42,.92)}${at(112,75,dog("sit"),1)}</g>`
+   +bubble(70,16,"Je me tourne",.14,.4)+bubble(80,16,"4 pattes au sol, oui !",.46,.9)+treat(["74 66","74 66","93 56","93 56"],[0,.5,.6,1],.5,.66)},
+ stay(){const k=[0,.12,.45,.6,.78,1],px=["0 0","0 0","-60 0","-60 0","0 0","0 0"];
+   return ground()+at(150,75,dog("lie"),1)
+   +`<g>${TR(px,k)}${person(100,116,60)}</g>`
+   +bubble(110,16,"Reste",.02,.2)+bubble(70,16,"…",.25,.58)
+   +treat(["116 60","116 60","124 82","124 82"],[0,.78,.84,1],.78,.9)+bubble(170,26,"OK !",.9,.99)},
+ bed(){return ground()+`<ellipse class="mat" cx="170" cy="92" rx="38" ry="6"/>`+person(40,60,62)
+   +`<g>${HIDE(.45,.95)}${mover(["80 75","80 75","170 75","170 75"],[0,.15,.42,1],dog("stand",{trot:1}))}</g>`
+   +`<g opacity="0">${VIS(.45,.95)}${at(170,77,dog("lie"))}</g>`
+   +bubble(70,16,"Panier",.04,.28)+treat(["60 62","60 62","120 30","176 84","176 84"],[0,.55,.62,.7,1],.55,.85)+bubble(150,26,"Bravo, tu restes",.6,.92)},
+ hands(){return ground()+person(55,100,84,{crouch:1})+`<line class="hs" x1="60" y1="68" x2="130" y2="84"/><circle class="hm" cx="130" cy="84" r="7"/><circle class="hm" cx="100" cy="84" r="7"/>`
+   +mover(["205 75","138 75","138 75","168 75","168 75","168 75"],[0,.2,.3,.42,.9,1],at(0,0,dog("sniff"),1),FADE)
+   +treat(["130 80","130 80"],[0,1],.5,.85)+bubble(185,22,"Oui !",.52,.86)}
+};
+const EX_ANIM={n1:"name",n2:"ping",n3:"name",n4:"come",n5:"hide",n6:"come",m1:"tug",m2:"pause",m3:"tug",m4:"tug",m5:"carry",m6:"sleep",m7:"pause",l1:"tree",l2:"tree",l3:"tree",l4:"tree",l5:"tree",l6:"sniff",p1:"potty",p2:"potty",p3:"sniff",p5:"potty",p6:"potty",b1:"sit",b2:"sit",b3:"down",b4:"mat",b6:"brush",b7:"hands",b8:"stay",b9:"bed",b5:"hands",b10:"sit",c1:"crate",s1:"alone",s2:"alone",j1:"jump",e1:"come"};
+function scene(key,label){if(!key)return "";const f=key==="hide"?()=>SCENES.come(1):SCENES[key];return f?wrap(f(),label):""}
+const REDUCE=(()=>{try{return matchMedia("(prefers-reduced-motion: reduce)").matches}catch(e){return false}})();
+function initScenes(root){root.querySelectorAll("svg.scene").forEach(s=>{
+  if(REDUCE&&s.pauseAnimations){s.pauseAnimations();try{s.setCurrentTime(D*.6)}catch(e){}}
+  s.addEventListener("click",()=>{if(!s.pauseAnimations)return;s.animationsPaused()?s.unpauseAnimations():s.pauseAnimations()});
+})}
+
+
+/* ---------- état ---------- */
+const DEFAULT={name:"Buck",birth:"2026-08-06",arrival:"2026-10-15",wake:"07:00",bed:"22:30",example:true};
+function load(k,d){try{const v=localStorage.getItem(k);return v?JSON.parse(v):d}catch(e){return d}}
+function save(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}
+let pup=Object.assign({},DEFAULT,load("pup",{}));
+let checks=load("checks",{});
+let prefs=Object.assign({repas:true,pipi:true,educ:true,sieste:true,nuit:true},load("notifPrefs",{}));
+let offset=0;
+
+const {parse,iso,midnight,addDays,daysBetween,fmtMin,fmtDur}=C;
+function esc(s){return String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]))}
+function nm(s){return esc(s).replace(/\{N\}/g,esc(pup.name||"ton chiot"))}
+
+function viewDate(){return addDays(new Date(),offset)}
+function dayInfo(date){return C.dayInfo(date,pup)}
+function itemsFor(date){return C.itemsFor(date,pup)}
+function socFor(date){return "soc"+(dayInfo(date).dIdx%SOC.length)}
+function allIds(date){return itemsFor(date).concat([socFor(date),"game"])}
+function doneCount(date){const c=checks[iso(date)]||{};return allIds(date).filter(id=>c[id]).length}
+function nowMin(){const n=new Date();return n.getHours()*60+n.getMinutes()}
+
+/* ---------- rendu ---------- */
+const CHECK='<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8.5l3 3 7-7" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+const fmt=new Intl.DateTimeFormat("fr-FR",{weekday:"long",day:"numeric",month:"long"});
+
+function header(){
+  document.getElementById("pupName").textContent=pup.name||"Mon chiot";
+  const i=dayInfo(midnight(new Date()));
+  document.getElementById("ageChip").textContent=i.ageW!=null?(i.ageW+" semaines"):"âge ?";
+  document.getElementById("exampleNote").hidden=!pup.example;
+}
+
+function card(id,kind,title,dur,steps,hint,date,an,src){
+  const c=checks[iso(date)]||{}, done=!!c[id], th=THEMES[kind];
+  return `<article class="ex${done?" done":""}">
+   <div class="ex-head">
+    <button class="check" data-id="${id}" aria-pressed="${done}" aria-label="Marquer « ${esc(title)} » comme fait">${CHECK}</button>
+    <div class="ex-title"><span class="tag" style="color:${th.c}">${th.l}</span><h3>${nm(title)}</h3><span class="dur">${esc(dur)}</span></div>
+   </div>
+   ${done?"":scene(an,title)}
+   ${steps?`<details${done?"":" open"}><summary>Comment faire</summary><ol>${steps.map(s=>"<li>"+nm(s)+"</li>").join("")}</ol>${hint?`<p class="hint">${nm(hint)}</p>`:""}${src?`<p class="srcline">Source : ${esc(src)}</p>`:""}</details>`:""}
+  </article>`;
+}
+
+function daybar(pfx,date,i){
+  const arr=parse(pup.arrival), before=arr&&daysBetween(arr,date)<0;
+  return `<div class="daybar">
+    <button data-nav="-1" aria-label="Jour précédent">‹</button>
+    <div class="lbl"><small>${before?"Avant l'arrivée":"Jour "+(i.dIdx+1)+" · semaine "+i.week}</small><strong>${fmt.format(date)}</strong>
+     ${offset!==0?'<br><button class="today-link" data-nav="0">Revenir à aujourd\'hui</button>':""}</div>
+    <button data-nav="1" aria-label="Jour suivant">›</button>
+   </div>`;
+}
+function bindDaybar(root,rerender){
+  root.querySelectorAll("[data-nav]").forEach(b=>b.onclick=()=>{const n=+b.dataset.nav;offset=n===0?0:offset+n;rerender()});
+}
+
+function nextEvent(){
+  if(offset!==0) return null;
+  const p=C.dayPlan(midnight(new Date()),pup), m=nowMin();
+  return p.events.find(e=>e.m>=m)||null;
+}
+
+function renderToday(){
+  const date=viewDate(), i=dayInfo(date), wk=WEEKS[i.week-1];
+  const ids=itemsFor(date), total=ids.length+2, done=doneCount(date);
+  const arr=parse(pup.arrival);
+  let metrics="";
+  if(i.ageM!=null){
+    const m=Math.max(i.ageM,1.8), r=C.rhythm(i.ageW);
+    const hold=Math.min(8,Math.max(2,Math.round(m+1)));
+    const socOk=i.ageW!=null&&i.ageW<=16;
+    metrics=`<div class="metrics">
+      <div class="metric"><b>${r.meals} repas</b><span>par jour à cet âge, à heures fixes</span></div>
+      <div class="metric"><b>${fmtDur(r.awake)}</b><span>d'éveil environ, puis pipi et sieste</span></div>
+      <div class="metric"><b>${socOk?(16-i.ageW)+" sem.":"Entretien"}</b><span>${socOk?"de fenêtre de socialisation (jusqu'à 16 sem.)":"socialisation : on continue les découvertes"}</span></div>
+    </div>
+    <p class="note">Repère AKC : il peut se retenir au maximum ${hold} h (âge en mois + 1). En journée, sors-le bien plus souvent : le planning s'en charge.</p>`;
+  }
+  const dots=Array.from({length:7},(_,k)=>{
+    const wStart=(i.week-1)*7, d=addDays(arr||date,wStart+k);
+    const n=doneCount(d), cls=n>=total?"full":n>0?"part":"";
+    return `<span class="${cls}${iso(d)===iso(date)?" cur":""}" title="${fmt.format(d)} : ${n}/${total}"></span>`;
+  }).join("");
+  const g=GAMES[i.dIdx%GAMES.length], tip=TIPS[i.dIdx%TIPS.length], soc=SOC[i.dIdx%SOC.length];
+  const nx=nextEvent();
+  const el=document.getElementById("p-today");
+  el.innerHTML=`
+   ${daybar("t",date,i)}
+   ${nx?`<button class="next" data-goplan><span class="t">${fmtMin(nx.m)}</span><span><small>Prochaine étape</small>${CATS[nx.cat].ico} ${esc(nx.ti)}</span><span class="go">Planning ›</span></button>`:""}
+   <div class="week"><h2>${esc(wk[0])}</h2><p>${nm(wk[1])}</p><div class="dots" aria-label="Progression de la semaine">${dots}</div></div>
+   ${metrics}
+   <div class="progress">${done} / ${total} faits aujourd'hui</div>
+   <div class="cards">
+    ${ids.map(id=>{const e=EX[id];return card(id,e.t,e.ti,e.d,e.s,e.h,date,EX_ANIM[id],e.src)}).join("")}
+    ${card(socFor(date),"soc","Découverte du jour : "+soc,"5 min · à distance",["Montre-lui la nouveauté de loin, friandises pendant qu'il observe.","Laisse-le s'approcher s'il le souhaite, sans le forcer.","S'il recule ou se fige : éloigne-toi et récompense le calme.","Arrête sur une note positive."],"Mieux vaut une petite découverte réussie qu'une grosse expérience qui fait peur.",date,"watch","AVSAB, Zoopsy")}
+    ${card("game","bonus","Jeu du jour : "+g.ti,g.m,[g.p],"",date,g.a)}
+   </div>
+   <div class="tip"><h3>Conseil du jour</h3><p>${nm(tip)}</p></div>`;
+  initScenes(el);
+  bindDaybar(el,renderToday);
+  const gp=el.querySelector("[data-goplan]"); if(gp) gp.onclick=()=>show("plan");
+  el.querySelectorAll(".check").forEach(b=>b.onclick=()=>{
+    const k=iso(date); checks[k]=checks[k]||{}; checks[k][b.dataset.id]=!checks[k][b.dataset.id]; save("checks",checks); renderToday();
+  });
+}
+
+/* ---------- planning ---------- */
+function renderPlan(){
+  const date=viewDate(), plan=C.dayPlan(date,pup), i=plan.info, r=plan.rhythm;
+  const isToday=offset===0, m=nowMin();
+  const nextIdx=isToday?plan.events.findIndex(e=>e.m>=m):-1;
+  const age=i.ageW!=null?`À ${i.ageW} semaines`:"À cet âge";
+  const nights=r.night?`${r.night} sortie${r.night>1?"s":""} pipi la nuit`:"plus de sortie de nuit prévue (si besoin, on sort)";
+  const el=document.getElementById("p-plan");
+  el.innerHTML=`
+   ${daybar("p",date,i)}
+   <div class="week"><h2>La journée de ${esc(pup.name||"ton chiot")}</h2>
+    <p>${age} : ${r.meals} repas, environ ${fmtDur(r.awake)} d'éveil puis ${fmtDur(r.nap)} de sieste, séances de ${r.session} min, ${nights}. Lever ${fmtMin(plan.wake)}, coucher ${fmtMin(plan.bed)} : à régler dans <b>Mon chiot</b>.</p></div>
+   <div id="notifBox"></div>
+   <ol class="tl">${plan.events.map((e,k)=>{
+     const past=isToday&&e.m<m, cls=(past?" past":"")+(k===nextIdx?" now":"")+(e.m>=1440?" night":"");
+     return `<li class="ev ${e.cat}${cls}"><span class="t">${fmtMin(e.m)}</span><span class="ico" aria-hidden="true">${CATS[e.cat].ico}</span>
+      <div><b>${esc(e.ti)}</b>${e.tx?`<p>${nm(e.tx)}</p>`:""}</div></li>`}).join("")}</ol>
+   <p class="note">C'est une trame, pas un horaire militaire. S'il se réveille plus tôt, pipi tout de suite et on décale un peu. La fiche « La journée type » explique les règles et leurs sources.</p>`;
+  bindDaybar(el,renderPlan);
+  renderNotif();
+  const now=el.querySelector(".ev.now"); if(now&&isToday&&!renderPlan.scrolled){renderPlan.scrolled=1;setTimeout(()=>now.scrollIntoView({block:"center",behavior:"smooth"}),50)}
+}
+
+/* ---------- notifications ---------- */
+const VAPID_PUBLIC="BAWvYH5btN2AlS9X6s2ridfJCpTlLYLJVOSLT8t8csHR_RXRECWhhpZVxueJCCOQJ3oDPfRUK6nENHUNjRTqEt8";
+const online=/^https?:$/.test(location.protocol);
+const pushOk=online&&"serviceWorker" in navigator&&"PushManager" in window&&"Notification" in window;
+const isIOS=/iPad|iPhone|iPod/.test(navigator.userAgent)||(navigator.platform==="MacIntel"&&navigator.maxTouchPoints>1);
+const standalone=(window.matchMedia&&matchMedia("(display-mode: standalone)").matches)||navigator.standalone===true;
+let swReg=null, pushSub=null, notifMsg="";
+
+function b64(s){const p="=".repeat((4-s.length%4)%4),b=atob((s+p).replace(/-/g,"+").replace(/_/g,"/"));return Uint8Array.from(b,c=>c.charCodeAt(0))}
+function syncBody(extra){return JSON.stringify(Object.assign({subscription:pushSub,pup:{name:pup.name,birth:pup.birth,arrival:pup.arrival,wake:pup.wake,bed:pup.bed},prefs,tz:Intl.DateTimeFormat().resolvedOptions().timeZone||"Europe/Paris"},extra||{}))}
+async function syncPush(force,extra){
+  if(!pushSub) return;
+  const body=syncBody(extra), sig=body.length+":"+body.slice(-400);
+  const last=load("pushSync",{});
+  if(!force&&last.sig===sig&&Date.now()-last.at<7*DAY) return;
+  const r=await fetch("/api/subscribe",{method:"POST",headers:{"Content-Type":"application/json"},body});
+  if(!r.ok) throw new Error("serveur "+r.status);
+  save("pushSync",{sig,at:Date.now()});
+}
+async function enablePush(){
+  notifMsg="";
+  try{
+    const perm=await Notification.requestPermission();
+    if(perm!=="granted"){notifMsg="Notifications refusées. Autorise-les dans les réglages du téléphone, puis réessaie.";return renderNotif()}
+    swReg=swReg||await navigator.serviceWorker.ready;
+    pushSub=await swReg.pushManager.getSubscription()||await swReg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:b64(VAPID_PUBLIC)});
+    await syncPush(true);
+    notifMsg="C'est activé : une notification de test arrive dans quelques secondes.";
+  }catch(e){notifMsg="Activation impossible ("+e.message+"). Réessaie dans un instant."}
+  renderNotif();
+}
+async function disablePush(){
+  try{
+    if(pushSub){
+      await fetch("/api/subscribe",{method:"DELETE",headers:{"Content-Type":"application/json"},body:JSON.stringify({subscription:pushSub})});
+      await pushSub.unsubscribe();
+    }
+  }catch(e){}
+  pushSub=null; save("pushSync",{}); notifMsg="Rappels désactivés sur ce téléphone."; renderNotif();
+}
+function renderNotif(){
+  const box=document.getElementById("notifBox"); if(!box) return;
+  let h;
+  if(!online) h=`<p>Les rappels fonctionnent une fois l'app en ligne (sur Vercel), pas en ouvrant le fichier directement.</p>`;
+  else if(isIOS&&!standalone) h=`<p><b>Sur iPhone, les rappels demandent d'installer l'app.</b> Dans Safari : bouton <b>Partager</b> → <b>Sur l'écran d'accueil</b>. Ouvre ensuite le Carnet depuis l'icône, et reviens ici.</p>`;
+  else if(!pushOk) h=`<p>Ce navigateur ne gère pas les notifications. Essaie avec Chrome (Android) ou Safari (iPhone, app installée sur l'écran d'accueil).</p>`;
+  else if(Notification.permission==="denied") h=`<p>Les notifications sont bloquées pour cette app. Autorise-les dans les réglages du téléphone, puis recharge la page.</p>`;
+  else if(!pushSub) h=`<p>Reçois sur ce téléphone un rappel à chaque étape : repas, pipi, éducation et jeux, siestes, et la nuit si tu veux. À activer sur chaque téléphone de la famille.</p><button class="btn" id="pushOn">Activer les rappels</button>`;
+  else h=`<p><b>Rappels actifs sur ce téléphone.</b> Choisis ce que tu veux recevoir :</p>
+    <div class="toggles">${Object.keys(CATS).map(k=>`<label class="tg"><input type="checkbox" data-cat="${k}"${prefs[k]?" checked":""}><span>${CATS[k].ico} ${CATS[k].l}</span></label>`).join("")}</div>
+    <div class="row-btn"><button class="btn ghost" id="pushTest">Envoyer un test</button><button class="btn ghost" id="pushOff">Désactiver</button></div>`;
+  box.innerHTML=`<section class="notif"><h3>Rappels</h3>${h}${notifMsg?`<p class="msg">${esc(notifMsg)}</p>`:""}<p class="note">Les rappels peuvent arriver avec quelques minutes de décalage.</p></section>`;
+  const on=box.querySelector("#pushOn"); if(on) on.onclick=()=>{on.disabled=true;enablePush()};
+  const off=box.querySelector("#pushOff"); if(off) off.onclick=disablePush;
+  const t=box.querySelector("#pushTest"); if(t) t.onclick=async()=>{t.disabled=true;try{await syncPush(true,{test:true});notifMsg="Test envoyé."}catch(e){notifMsg="Envoi impossible ("+e.message+")."}renderNotif()};
+  box.querySelectorAll("[data-cat]").forEach(c=>c.onchange=async()=>{
+    prefs[c.dataset.cat]=c.checked; save("notifPrefs",prefs);
+    try{await syncPush(true);notifMsg="Enregistré."}catch(e){notifMsg="Pas de connexion : réessaie plus tard."}
+    renderNotif();
+  });
+}
+async function initPush(){
+  if(!online||!("serviceWorker" in navigator)) return;
+  try{
+    swReg=await navigator.serviceWorker.register("/sw.js");
+    if(pushOk&&Notification.permission==="granted"){
+      pushSub=await swReg.pushManager.getSubscription();
+      if(pushSub) syncPush(false).catch(()=>{});
+    }
+  }catch(e){}
+  renderNotif();
+}
+
+/* ---------- autres onglets ---------- */
+function renderProg(){
+  const cur=dayInfo(midnight(new Date())).week;
+  document.getElementById("p-prog").innerHTML=`<p class="note">Douze semaines à partir de l'arrivée. Chaque semaine reprend la précédente en ajoutant une petite difficulté. Touche une semaine pour voir son premier jour.</p>
+  <div class="prog">${WEEKS.map((w,k)=>`<button class="pw${k+1===cur?" cur":""}" data-w="${k}">
+    <span class="n">${k+1}</span><h3>${esc(w[0])}</h3>
+    <ul>${SLOTS.map(t=>"<li>"+esc(EX[PLAN[t][k]].ti)+"</li>").join("")}</ul></button>`).join("")}</div>`;
+  document.querySelectorAll(".pw").forEach(b=>b.onclick=()=>{
+    const arr=parse(pup.arrival)||midnight(new Date());
+    offset=daysBetween(midnight(new Date()),addDays(arr,Number(b.dataset.w)*7));
+    show("today");
+  });
+}
+function renderSheets(){
+  document.getElementById("p-sheets").innerHTML=SHEETS.map(s=>`<article class="sheet">
+   <span class="tag" style="color:${THEMES[s.k].c}">${THEMES[s.k].l}</span>
+   <h2>${nm(s.ti)}</h2><p class="lead">${nm(s.lead)}</p>
+   <h3>À faire</h3><ul class="yes">${s.yes.map(x=>"<li>"+nm(x)+"</li>").join("")}</ul>
+   <h3>À éviter</h3><ul class="no">${s.no.map(x=>"<li>"+nm(x)+"</li>").join("")}</ul>${s.signs?`<p class="signs">${nm(s.signs)}</p>`:""}${s.debate?`<div class="debate"><h3>Les pros ne sont pas tous d'accord</h3><p>${nm(s.debate)}</p></div>`:""}
+   <p class="src">Sources : ${esc(s.src)}</p></article>`).join("");
+}
+function renderGames(){
+  document.getElementById("p-games").innerHTML=`<p class="note">Des jeux courts qui fatiguent la tête plus que les pattes, adaptés à un golden en croissance.</p>
+  <div class="games">${GAMES.map(g=>`<article class="game"><span class="meta">${esc(g.m)}</span><h3>${esc(g.ti)}</h3><p>${nm(g.p)}</p>${scene(g.a,g.ti)}</article>`).join("")}</div>`;
+  initScenes(document.getElementById("p-games"));
+}
+function renderSources(){
+  const n=SOURCES.reduce((a,g)=>a+g[1].length,0);
+  document.getElementById("p-sources").innerHTML=`<article class="sheet"><h2>D'où viennent ces conseils</h2>
+  <p class="lead">${n} sources écrites par des vétérinaires, des vétérinaires comportementalistes, des éducateurs d'associations de protection animale, des écoles de chiens guides et des clubs canins, plus des études scientifiques. Toutes recommandent une éducation fondée sur la récompense, sans punition physique.</p>
+  ${SOURCES.map(g=>`<h3>${esc(g[0])}</h3><ul>${g[1].map(s=>`<li><a href="${s[1]}" target="_blank" rel="noopener">${esc(s[0])}</a></li>`).join("")}</ul>`).join("")}
+  <p class="src">Ces conseils ne remplacent pas ton vétérinaire. En cas de morsures fortes, de peur marquée ou de problème qui persiste, fais appel à un éducateur canin ou à un vétérinaire comportementaliste.</p></article>`;
+}
+const TABS=["today","plan","prog","sheets","games","sources"];
+function show(tab){
+  document.querySelectorAll("nav.tabs button").forEach(b=>b.setAttribute("aria-selected",b.dataset.tab===tab));
+  TABS.forEach(t=>document.getElementById("p-"+t).hidden=t!==tab);
+  if(tab==="today")renderToday(); if(tab==="plan"){renderPlan.scrolled=0;renderPlan()} if(tab==="prog")renderProg();
+  window.scrollTo(0,0);
+}
+
+/* ---------- réglages ---------- */
+const form=document.getElementById("settings"), gear=document.getElementById("gearBtn");
+const F=id=>document.getElementById(id);
+gear.onclick=()=>{
+  form.hidden=!form.hidden; gear.setAttribute("aria-expanded",!form.hidden);
+  F("fName").value=pup.name; F("fBirth").value=pup.birth; F("fArrival").value=pup.arrival; F("fWake").value=pup.wake; F("fBed").value=pup.bed;
+};
+form.addEventListener("submit",e=>{
+  e.preventDefault();
+  pup={name:F("fName").value.trim()||"Mon chiot",birth:F("fBirth").value,arrival:F("fArrival").value||iso(new Date()),
+    wake:F("fWake").value||DEFAULT.wake,bed:F("fBed").value||DEFAULT.bed,example:false};
+  save("pup",pup); form.hidden=true; gear.setAttribute("aria-expanded","false"); offset=0; refresh();
+  syncPush(false).catch(()=>{});
+});
+document.querySelectorAll("nav.tabs button").forEach(b=>b.onclick=()=>show(b.dataset.tab));
+
+function refresh(){
+  header();renderToday();renderPlan();renderProg();renderSheets();renderGames();renderSources();
+  if(location.hash==="#planning") show("plan");
+}
+refresh();
+initPush();
+// L'étape en cours avance toute seule quand l'app reste ouverte.
+setInterval(()=>{if(offset===0&&!document.hidden){if(!F("p-plan").hidden)renderPlan();}},60000);
+document.addEventListener("visibilitychange",()=>{if(!document.hidden&&offset===0){if(!F("p-plan").hidden)renderPlan();else if(!F("p-today").hidden)renderToday()}});
+
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,15 @@
+# Déclenche l'envoi des rappels toutes les 5 minutes (le plan Hobby de Vercel limite ses propres crons à 1 par jour).
+# GitHub peut décaler ces exécutions de quelques minutes : les rappels arrivent donc avec un peu de retard.
+name: Rappels
+on:
+  schedule:
+    - cron: "*/5 * * * *"
+  workflow_dispatch:
+jobs:
+  tick:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - run: curl -fsS -m 90 "${APP_URL}/api/tick"
+        env:
+          APP_URL: https://APP_DOMAIN
