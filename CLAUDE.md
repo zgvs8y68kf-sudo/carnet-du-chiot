@@ -2,9 +2,13 @@
 
 App web d'éducation pour **Buck**, chiot golden retriever de Thomas (arrivé mi-octobre 2026, environ 10 semaines à l'arrivée). Famille avec deux enfants, près de Carpentras (Vaucluse). Interface et contenus en **français**, tutoiement.
 
-Trois parties :
+Quatre onglets (barre en bas) : **Aujourd'hui** (étape en cours, exercices à cocher, renforts, alerte locale), **Journée** (planning heure par heure), **Soucis** (aide immédiate « Là, tout de suite » + protocoles), **Guide** (programme, fiches, jeux, dangers locaux, numéros utiles, méthode, sources). Les détails s'ouvrent dans un panneau qui monte du bas. Accueil en 5 étapes au premier lancement.
+
+Contenus :
 - **Programme de 12 semaines** calé sur la date d'arrivée. Chaque jour : 6 exercices, une découverte de socialisation, un jeu et un conseil, avec des cases à cocher. Chaque exercice et chaque jeu a une petite animation SVG.
 - **Planning de la journée** recalculé chaque jour selon l'âge, l'heure du lever et l'heure du coucher : repas, pipis, séances d'éducation et jeux, siestes, sorties de nuit.
+- **Soucis à travailler** (jusqu'à 3) : pourquoi il le fait, à vérifier d'abord, plan, à éviter, quand appeler un pro, exercices de renfort (un par jour, ajouté à la journée), suivi chiffré sur 14 jours.
+- **Dangers locaux** selon le code postal (département) et le mois.
 - **Rappels** (notifications push) à chaque étape du planning, sur chaque téléphone de la famille qui les active.
 
 Hébergé sur Vercel, déployé à chaque push sur `main`.
@@ -55,6 +59,9 @@ Module UMD : `window.CHIOT` dans le navigateur, `require("../shared.js")` dans l
 | `TIPS` | Conseils du jour (rotation par jour) |
 | `SHEETS` | Fiches thématiques `{k, ti, lead, yes[], no[], signs?, debate?, src}` |
 | `SOURCES` | Groupes `[titre, [[libellé, url], …]]` |
+| `ISSUES`, `MAX_ISSUES` | Les soucis `{id, t, ti, log:{q,k:"down"\|"up"}, why, first[], plan[], avoid[], pro, ex[], src}` ; exercices de renfort `r1`…`r13` ajoutés à `EX` |
+| `issueEx(id,dIdx,exclude)` | Renfort du jour d'un souci (rotation, en évitant les exercices déjà au programme) |
+| `RISKS`, `ZONES`, `depOf`, `risksFor(cp,mois)` | Dangers : mois concernés, zones (listes de départements), niveau |
 | `CATS` | Catégories de rappels : `repas`, `pipi`, `educ`, `sieste`, `nuit` (libellé + emoji) |
 | Dates | `parse`, `iso`, `midnight`, `addDays`, `daysBetween`, `dayInfo(date,pup)`, `itemsFor(date,pup)` |
 | Planning | `rhythm(ageSemaines)`, `dayPlan(date,pup)` |
@@ -102,6 +109,8 @@ Rythmes selon l'âge (`rhythm`) :
 
 La journée est une suite de cycles du lever au coucher : réveil → pipi → (repas → pipi/caca 15 min après) → séance d'éducation + activité (découverte, jeu du jour, sortie renifle, manipulation, jeu libre) → pipi → sieste. Les repas sont répartis régulièrement sur les cycles qui commencent avant 18 h 30 (et 3 h 30 avant le coucher). Les 6 exercices du jour sont distribués à tour de rôle sur les cycles. Le soir : gamelle d'eau levée 1 h 30 avant le coucher (`quiet`, pas de notification), dernier pipi 10 min avant. Les sorties de nuit sont réparties entre le coucher et le lever (minutes > 1440).
 
+Les soucis modifient la journée : leurs exercices de renfort entrent dans la rotation des séances ; « propreté » ajoute un pipi de sécurité au milieu des éveils ; « nuit » ajoute la routine du coucher ; « mord » / « mâche » changent le texte des siestes. `pup.issues` est donc envoyé au serveur avec l'abonnement.
+
 Chaque événement : `{m: minutes depuis minuit, cat, ti, tx, id, quiet?, ex?}`.
 
 Sources des règles : AKC (18-20 h de sommeil), Zoopsy (3-4 repas à heures fixes), CNIB et Guide Dogs Ireland (pipi au réveil, après repas, jeu, sieste), Dogs for Good (sorties de nuit qu'on espace), PDSA (le « 5 min par mois d'âge » n'a pas de base scientifique).
@@ -126,8 +135,10 @@ Toujours utiliser `addDays(d,n)` (via `new Date(y,m,d+n)`). Ne jamais faire `get
 ## Stockage
 
 **Navigateur** (`localStorage`, chaque accès dans un `try/catch`) :
-- `pup` → `{name,birth,arrival,wake,bed,example}` (fusionné avec `DEFAULT` = Buck)
-- `checks` → `{ "AAAA-MM-JJ": {idExercice:true} }`
+- `pup` → `{name,birth,arrival,wake,bed,cp,city,vet,issues,example}` (fusionné avec `DEFAULT` = Buck)
+- `checks` → `{ "AAAA-MM-JJ": {idExercice:true, "ev:<id étape>":true, "rf:<id souci>":true} }`
+- `log` → `{ "AAAA-MM-JJ": {idSouci: nombre} }` (suivi des soucis)
+- `onboarded` → accueil déjà vu
 - `notifPrefs` → `{repas,pipi,educ,sieste,nuit}` (booléens)
 - `pushSync` → signature du dernier envoi à `/api/subscribe` (évite de renvoyer à chaque ouverture)
 
@@ -148,6 +159,12 @@ Quota Hobby : 10 000 lectures (« simple operations ») et 2 000 écritures (« 
 Sur iPhone, les push ne marchent que si l'app est **ajoutée à l'écran d'accueil** (Safari → Partager → Sur l'écran d'accueil) et ouverte depuis l'icône (iOS 16.4+).
 
 Variables d'environnement Vercel : `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT` (facultative), `STATE_KEY` (chemin secret du fichier d'état), `BLOB_READ_WRITE_TOKEN` (ajoutée en reliant le store Blob au projet). Si on change la paire VAPID, mettre à jour `VAPID_PUBLIC` dans `index.html` : tous les téléphones devront réactiver les rappels.
+
+## Design
+
+Direction « Clinique chaleureuse » (choisie parmi 5 démos : https://claude.ai/artifact/BHvYR74funjTSZMV6x7JWn) : police du système, fond gris doux, cartes blanches, une seule couleur d'accent (`--accent`, doré), icônes au trait en `<symbol>` SVG, pas d'emoji dans l'interface. Toutes les couleurs sont des variables (`:root` clair, sombre via `prefers-color-scheme` et `[data-theme]`). Espaces insécables du français ajoutés par `fr()` (appelée par `esc()`). Les animations ne s'affichent que dans le panneau d'un exercice.
+
+API externes côté navigateur (sans clé) : `geo.api.gouv.fr` (ville d'un code postal), `api-adresse.data.gouv.fr` puis `data.geopf.fr` (code postal depuis la position GPS).
 
 ## Contenu : règles à respecter
 
@@ -173,6 +190,8 @@ Variables d'environnement Vercel : `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAP
 ## Idées de suite (non faites)
 
 - Bouton « il vient de se réveiller » qui décale le reste de la journée (et les rappels).
+- Carnet de santé : vaccins, vermifuges, antiparasitaires, poids, avec rappels.
+- Mode de voix / gros boutons pour la nuit.
 - Synchronisation des cases cochées et des réglages entre les téléphones de la famille (un « code famille » dans le Blob).
 - Fiche « jours de pluie » : sorties pipi express, jeux de flair à l'intérieur.
 - Horaires différents le week-end.

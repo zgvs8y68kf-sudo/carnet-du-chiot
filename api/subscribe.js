@@ -4,7 +4,9 @@ const { load, save } = require("./_store");
 const { send } = require("./_push");
 const { idOf, body } = require("./_util");
 
+const { ISSUES } = require("../shared.js");
 const CATS = ["repas", "pipi", "educ", "sieste", "nuit"];
+const ISSUE_IDS = ISSUES.map(i => i.id);
 const MAX_SUBS = 20;
 
 module.exports = async (req, res) => {
@@ -31,7 +33,8 @@ module.exports = async (req, res) => {
     if (isNew && Object.keys(state.subs).length >= MAX_SUBS) return res.status(429).json({ error: "trop d'abonnements" });
     state.subs[id] = {
       sub: { endpoint: sub.endpoint, keys: { p256dh: String(sub.keys && sub.keys.p256dh || ""), auth: String(sub.keys && sub.keys.auth || "") } },
-      pup: { name: clean(p.name), birth: clean(p.birth), arrival: clean(p.arrival), wake: clean(p.wake), bed: clean(p.bed) },
+      pup: { name: clean(p.name), birth: clean(p.birth), arrival: clean(p.arrival), wake: clean(p.wake), bed: clean(p.bed),
+        issues: (Array.isArray(p.issues) ? p.issues : []).filter(x => ISSUE_IDS.includes(x)).slice(0, 3) },
       prefs,
       tz: clean(b.tz) || "Europe/Paris",
       sentUntil: (state.subs[id] && state.subs[id].sentUntil) || Date.now(),

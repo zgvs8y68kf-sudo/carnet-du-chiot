@@ -1,5 +1,5 @@
 /* Service worker : rappels (push) et fonctionnement hors ligne. */
-const CACHE="carnet-v1";
+const CACHE="carnet-v2";
 const SHELL=["/","/shared.js","/manifest.webmanifest","/icon-192.png","/icon-512.png","/apple-touch-icon.png"];
 
 self.addEventListener("install",e=>{
