@@ -252,6 +252,10 @@ ul.yes li::marker{content:"✓  ";color:var(--ok)}
 .field .help{font-size:.8rem;color:var(--muted)}
 .two{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 .inline{display:flex;gap:8px}
+.meals{display:grid;gap:8px}
+.meals:empty{display:none}
+.meal input{background:var(--card);border:1px solid var(--line);border-radius:var(--r-s);padding:9px 12px;min-height:44px;font-size:1rem}
+.meal .btn{width:46px;padding:0;color:var(--muted)}
 .inline input{flex:1;min-width:0}
 .steps-dots{display:flex;gap:6px;justify-content:center}
 .steps-dots i{width:6px;height:6px;border-radius:50%;background:var(--line)}
@@ -368,7 +372,7 @@ const cap=s=>s.charAt(0).toUpperCase()+s.slice(1);
 const dayLabel=d=>cap(fmtLong.format(d));
 
 /* ---------- état (stocké sur ce téléphone) ---------- */
-const DEFAULT={name:"Buck",birth:"2026-08-06",arrival:"2026-10-15",wake:"07:00",bed:"22:30",cp:"84200",city:"Carpentras",vet:"",issues:[],example:true};
+const DEFAULT={name:"Buck",birth:"2026-08-06",arrival:"2026-10-15",wake:"07:00",bed:"22:30",meals:["10:30","15:30"],cp:"84200",city:"Carpentras",vet:"",issues:[],example:true};
 function load(k,d){try{const v=localStorage.getItem(k);return v?JSON.parse(v):d}catch(e){return d}}
 function save(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}
 let pup=Object.assign({},DEFAULT,load("pup",{}));
@@ -638,6 +642,7 @@ function renderDay(){
   const isToday=offset===0, m=nowMin(), s=isToday?currentStep():null;
   let h=`<header class="vhead">${dateNav(date)}<h1>Journée</h1><p class="meta">Calculée pour ${i.ageW!=null?i.ageW+" semaines":"son âge"}, lever ${fmtMin(plan.wake)}, coucher ${fmtMin(plan.bed)}.</p></header>
    <div class="summary"><div><b>${r.meals}</b><span>repas</span></div><div><b>${fmtDur(r.awake)}</b><span>d'éveil, puis sieste</span></div><div><b>${r.night||"0"}</b><span>sortie${r.night>1?"s":""} de nuit</span></div></div>
+   ${plan.customMeals&&r.meals<r.advisedMeals?`<div class="alert">${ic("bowl")}<span><b>${r.meals} repas, à ${plan.info.ageW} semaines</b>Les vétérinaires conseillent plutôt ${r.advisedMeals} petits repas à cet âge, la ration du jour étant partagée. Si tu restes à ${r.meals}, garde la même quantité totale et parles-en au vétérinaire au prochain rendez-vous. Les heures se changent dans les réglages.</span></div>`:""}
    ${notifBar()}`;
   let rows="", nightShown=false;
   plan.events.forEach(e=>{
@@ -865,6 +870,7 @@ function settingsSheet(){
      <div class="field"><label for="fArrival">Arrivé le</label><input id="fArrival" type="date" value="${esc(pup.arrival)}"></div></div>
     <div class="two"><div class="field"><label for="fWake">Lever</label><input id="fWake" type="time" value="${esc(pup.wake)}"></div>
      <div class="field"><label for="fBed">Coucher</label><input id="fBed" type="time" value="${esc(pup.bed)}"></div></div>
+    ${mealFields(pup.meals)}
     ${placeFields()}
     <div class="field"><label for="fVet">Téléphone de ton vétérinaire</label><input id="fVet" type="tel" inputmode="tel" autocomplete="off" value="${esc(pup.vet||"")}" placeholder="04 90 …"></div>
     <button class="btn pri full" type="submit">Enregistrer</button>
@@ -875,7 +881,8 @@ function settingsSheet(){
    </div>
    <p class="note">Tout est enregistré sur ce téléphone. Les rappels envoient au serveur seulement le prénom, les dates, les horaires et les soucis choisis.</p>`);
   bindPlace();
-  $("#setForm").onsubmit=e=>{e.preventDefault();readPlace();
+  bindMeals();
+  $("#setForm").onsubmit=e=>{e.preventDefault();readPlace();pup.meals=readMeals();
     Object.assign(pup,{name:$("#fName").value.trim()||"Mon chiot",birth:$("#fBirth").value,arrival:$("#fArrival").value||iso(new Date()),wake:$("#fWake").value||DEFAULT.wake,bed:$("#fBed").value||DEFAULT.bed,vet:$("#fVet").value.trim(),example:false});
     savePup();closeSheet();refresh()};
 }
@@ -883,6 +890,20 @@ function placeFields(){
   return `<div class="field"><label for="fCp">Code postal</label><div class="inline"><input id="fCp" inputmode="numeric" maxlength="5" autocomplete="postal-code" value="${esc(pup.cp||"")}" placeholder="84200"><button type="button" class="btn sec2" id="geoBtn">${ic("pin")}Me localiser</button></div>
     <span class="help" id="cpHelp">${pup.city?esc(pup.city):"Pour adapter les dangers de saison à ta région."}</span></div>`;
 }
+// Heures des repas : liste éditable, vide = rythme conseillé pour son âge.
+function mealFields(meals){
+  const list=(meals&&meals.length?meals:[]);
+  return `<div class="field"><label>Heures des repas</label><div class="meals" id="mealList">${list.map(mealInput).join("")}</div>
+    <button type="button" class="btn sec2" id="addMeal">${ic("plus")}Ajouter un repas</button>
+    <span class="help">Sans heure, le planning suit le rythme conseillé pour son âge (${C.rhythm(info(midnight(new Date())).ageW).meals} repas).</span></div>`;
+}
+function mealInput(v){return `<div class="inline meal"><input type="time" value="${esc(v||"")}" aria-label="Heure du repas"><button type="button" class="btn sec2" data-delmeal aria-label="Supprimer ce repas">${ic("x")}</button></div>`}
+function bindMeals(){
+  const l=$("#mealList");
+  $("#addMeal").onclick=()=>{if(l.children.length<6){l.insertAdjacentHTML("beforeend",mealInput("12:00"));l.lastElementChild.querySelector("input").focus()}};
+  l.addEventListener("click",e=>{const b=e.target.closest("[data-delmeal]");if(b)b.closest(".meal").remove()});
+}
+function readMeals(){return [...document.querySelectorAll("#mealList input")].map(i=>i.value).filter(Boolean).sort()}
 let placeCity=null;
 function bindPlace(){
   placeCity=pup.city||"";
@@ -930,18 +951,20 @@ function obRender(){
      <div class="field"><label for="oArr">Arrivée à la maison</label><input id="oArr" type="date" value="${esc(d.arrival)}"><span class="help">Le programme de 12 semaines démarre ce jour-là.</span></div></div>`;
   else if(s===2) body=`<h2>Vos horaires</h2><p class="muted">La journée de ${esc(d.name)} est construite entre ces deux heures.</p><div class="form two">
      <div class="field"><label for="oWake">Lever</label><input id="oWake" type="time" value="${esc(d.wake)}"></div>
-     <div class="field"><label for="oBed">Coucher</label><input id="oBed" type="time" value="${esc(d.bed)}"></div></div>`;
+     <div class="field"><label for="oBed">Coucher</label><input id="oBed" type="time" value="${esc(d.bed)}"></div></div>
+     <div class="form">${mealFields(d.meals)}</div>`;
   else if(s===3) body=`<h2>Où vivez-vous ?</h2><p class="muted">Chenilles, épillets, leishmaniose, plage, montagne : les dangers changent selon la région et la saison.</p><div class="form">${placeFields()}</div>`;
   else if(s===4) body=`<h2>Un souci en particulier ?</h2><p class="muted">Choisis jusqu'à ${MAX_ISSUES} soucis. Tu pourras changer à tout moment.</p>
      <div class="chips">${ISSUES.map(x=>`<button class="chip" data-obissue="${x.id}" aria-pressed="${d.issues.includes(x.id)}">${esc(x.ti)}</button>`).join("")}</div>`;
   openSheet("",`${dots}${body}<div class="sticky-act"><div class="inline">${s>0?`<button class="btn sec2" data-ob="back">Retour</button>`:""}<button class="btn pri" style="flex:1" data-ob="next">${s===0?"Commencer":s===N-1?"Terminer":"Continuer"}</button></div>
    ${s===0?`<button class="btn full" data-ob="skip" style="color:var(--muted)">Plus tard</button>`:""}</div>`,{full:true,noFocus:s===0,onClose:()=>{save("onboarded",1)}});
   if(s===3) bindPlace();
+  if(s===2) bindMeals();
 }
 function obCollect(){
   const d=ob.data,s=ob.step;
   if(s===1){d.name=$("#oName").value.trim()||"Mon chiot";d.birth=$("#oBirth").value;d.arrival=$("#oArr").value||iso(new Date())}
-  if(s===2){d.wake=$("#oWake").value||DEFAULT.wake;d.bed=$("#oBed").value||DEFAULT.bed}
+  if(s===2){d.wake=$("#oWake").value||DEFAULT.wake;d.bed=$("#oBed").value||DEFAULT.bed;d.meals=readMeals()}
   if(s===3){const v=$("#fCp").value.trim();d.cp=/^\d{5}$/.test(v)?v:"";d.city=d.cp?(placeCity||""):""}
 }
 
@@ -953,7 +976,7 @@ const isIOS=/iPad|iPhone|iPod/.test(navigator.userAgent)||(navigator.platform===
 const standalone=(window.matchMedia&&matchMedia("(display-mode: standalone)").matches)||navigator.standalone===true;
 let swReg=null, pushSub=null, notifMsg="";
 function b64(s){const p="=".repeat((4-s.length%4)%4),b=atob((s+p).replace(/-/g,"+").replace(/_/g,"/"));return Uint8Array.from(b,c=>c.charCodeAt(0))}
-function syncBody(extra){return JSON.stringify(Object.assign({subscription:pushSub,pup:{name:pup.name,birth:pup.birth,arrival:pup.arrival,wake:pup.wake,bed:pup.bed,issues:pup.issues},prefs,tz:Intl.DateTimeFormat().resolvedOptions().timeZone||"Europe/Paris"},extra||{}))}
+function syncBody(extra){return JSON.stringify(Object.assign({subscription:pushSub,pup:{name:pup.name,birth:pup.birth,arrival:pup.arrival,wake:pup.wake,bed:pup.bed,meals:pup.meals||[],issues:pup.issues},prefs,tz:Intl.DateTimeFormat().resolvedOptions().timeZone||"Europe/Paris"},extra||{}))}
 async function syncPush(force,extra){
   if(!pushSub) return;
   const body=syncBody(extra), sig=body.length+":"+body.slice(-500);

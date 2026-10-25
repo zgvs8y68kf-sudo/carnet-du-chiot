@@ -482,18 +482,39 @@ function dayPlan(date,pup){
 
   // Cycles éveil + sieste, du lever jusqu'au coucher.
   const cycles=[];
-  for(let t=W;t<B-30;t+=r.awake+r.nap){
-    const end=Math.min(t+r.awake,B);
-    cycles.push({start:t,end,last:end+r.nap+20>=B});
-    if(end+r.nap+20>=B) break;
+  // Avec des heures de repas imposées, on cale les siestes pour qu'un repas tombe toujours pendant un éveil.
+  const fixedMeals=customMeals(pup);
+  for(let t=W;t<B-30;){
+    let end=Math.min(t+r.awake,B), next=end+r.nap;
+    const ml=fixedMeals.find(m=>m>end-15&&m<next+10);
+    if(ml!=null){
+      if(ml-10-end>=45) next=ml-10;               // sieste raccourcie : on se réveille 10 min avant le repas
+      else {end=Math.min(Math.max(end,ml+30),B);next=end+r.nap}  // sinon on mange avant la sieste
+    }
+    const last=end+r.nap+20>=B;
+    cycles.push({start:t,end,last});
+    if(last) break;
+    t=next;
   }
-  // Repas : répartis régulièrement sur les cycles qui commencent avant 18h30 (et 3 h 30 avant le coucher).
-  const lastMeal=Math.min(1110,B-210);
-  const eligible=cycles.map((c,i)=>i).filter(i=>cycles[i].start<=lastMeal);
-  const nm=Math.min(r.meals,eligible.length);
-  for(let k=0;k<nm;k++){
-    const i=eligible[nm===1?0:Math.round(k*(eligible.length-1)/(nm-1))];
-    cycles[i].meal=k+1;
+  // Repas : heures choisies par la famille (pup.meals), sinon répartis régulièrement sur les cycles
+  // qui commencent avant 18h30 (et 3 h 30 avant le coucher).
+  const custom=fixedMeals;
+  let nm;
+  if(custom.length){
+    nm=custom.length;
+    custom.forEach((mt,k)=>{
+      let i=cycles.length-1;
+      for(let j=0;j<cycles.length;j++){if(cycles[j].start>mt){i=Math.max(0,j-1);break}}
+      cycles[i].mealAt=cycles[i].mealAt||[];cycles[i].mealAt.push({m:mt,k:k+1});
+    });
+  } else {
+    const lastMeal=Math.min(1110,B-210);
+    const eligible=cycles.map((c,i)=>i).filter(i=>cycles[i].start<=lastMeal);
+    nm=Math.min(r.meals,eligible.length);
+    for(let k=0;k<nm;k++){
+      const i=eligible[nm===1?0:Math.round(k*(eligible.length-1)/(nm-1))];
+      cycles[i].mealAt=[{m:cycles[i].start+10,k:k+1}];
+    }
   }
   // Séances : les 6 exercices du jour répartis à tour de rôle sur les cycles.
   const extras=["soc","game","walk","handle","chew"];
@@ -501,11 +522,11 @@ function dayPlan(date,pup){
     const first=i===0;
     add(c.start,"pipi",first?"Lever : pipi tout de suite":"Fin de sieste : pipi dehors",first?"Porte-le ou guide-le dehors sans attendre, avant de lui dire bonjour longuement. Mot du pipi, friandise.":"Dès qu'il se réveille, dehors. Mot du pipi, friandise, puis on rentre.");
     let t=c.start+10;
-    if(c.meal){
-      add(t,"repas","Repas "+c.meal+" sur "+nm,(zen?"Gamelle zen : « Assis », gamelle posée, « OK ». ":"")+"Ration pesée, moins les croquettes gardées pour l'éducation. On le laisse manger tranquille.");
-      add(t+15,"pipi","Pipi / caca après le repas","La crotte arrive souvent 10 à 30 min après le repas : reste dehors avec lui, mot de la crotte, friandise.");
-      t+=25;
-    }
+    (c.mealAt||[]).forEach(ml=>{
+      add(ml.m,"repas","Repas "+ml.k+" sur "+nm,(zen?"Gamelle zen : « Assis », gamelle posée, « OK ». ":"")+"Ration pesée, moins les croquettes gardées pour l'éducation. On le laisse manger tranquille.");
+      add(ml.m+15,"pipi","Pipi / caca après le repas","La crotte arrive souvent 10 à 30 min après le repas : reste dehors avec lui, mot de la crotte, friandise.");
+      if(ml.m<=t+5&&ml.m+25<c.end) t=Math.max(t,ml.m+25); // repas en début d'éveil : la séance vient après
+    });
     const ids=exIds.filter((_,k)=>k%cycles.length===i);
     const x=extras[i%extras.length];
     const xTxt=x==="soc"?"Découverte du jour : "+soc+"."
@@ -540,7 +561,11 @@ function dayPlan(date,pup){
   }
   ev.sort((a,b)=>a.m-b.m);
   ev.forEach(e=>e.id=e.cat+"-"+e.m);
-  return {events:ev,rhythm:r,info,wake:W,bed:B};
+  return {events:ev,rhythm:Object.assign({},r,{meals:nm,advisedMeals:r.meals}),info,wake:W,bed:B,customMeals:custom.length>0};
+}
+// Heures de repas choisies ("HH:MM"), triées, sans doublon, 6 au plus.
+function customMeals(pup){
+  return [...new Set((Array.isArray(pup.meals)?pup.meals:[]).map(x=>hm(x,null)).filter(x=>x!=null))].sort((a,b)=>a-b).slice(0,6);
 }
 function fmtDur(m){const h=Math.floor(m/60),r=m%60;return h?h+" h"+(r?" "+String(r).padStart(2,"0"):""):r+" min"}
 
@@ -553,6 +578,6 @@ const CATS={
 };
 
 const API={THEMES,EX,PLAN,SLOTS,WEEKS,SOC,GAMES,TIPS,SHEETS,SOURCES,CATS,DAY,ISSUES,MAX_ISSUES,issueById,issueEx,RISKS,ZONES,depOf,zonesOf,risksFor,
-  parse,iso,midnight,addDays,daysBetween,hm,fmtMin,fmtDur,dayInfo,itemsFor,rhythm,dayPlan};
+  parse,iso,midnight,addDays,daysBetween,hm,fmtMin,fmtDur,dayInfo,itemsFor,rhythm,dayPlan,customMeals};
 if(typeof module!=="undefined"&&module.exports) module.exports=API; else root.CHIOT=API;
 })(typeof self!=="undefined"?self:this);

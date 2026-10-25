@@ -109,6 +109,8 @@ Rythmes selon l'âge (`rhythm`) :
 
 La journée est une suite de cycles du lever au coucher : réveil → pipi → (repas → pipi/caca 15 min après) → séance d'éducation + activité (découverte, jeu du jour, sortie renifle, manipulation, jeu libre) → pipi → sieste. Les repas sont répartis régulièrement sur les cycles qui commencent avant 18 h 30 (et 3 h 30 avant le coucher). Les 6 exercices du jour sont distribués à tour de rôle sur les cycles. Le soir : gamelle d'eau levée 1 h 30 avant le coucher (`quiet`, pas de notification), dernier pipi 10 min avant. Les sorties de nuit sont réparties entre le coucher et le lever (minutes > 1440).
 
+**Heures de repas choisies** (`pup.meals`, liste de "HH:MM", par défaut 10h30 et 15h30 pour Buck, comme le fait la famille) : elles remplacent le rythme conseillé. Les siestes sont recalées pour qu'un repas tombe toujours pendant un éveil (`customMeals`). Si la famille donne moins de repas que conseillé pour l'âge, l'onglet Journée affiche un avis calme, sans bloquer. Liste vide = rythme conseillé.
+
 Les soucis modifient la journée : leurs exercices de renfort entrent dans la rotation des séances ; « propreté » ajoute un pipi de sécurité au milieu des éveils ; « nuit » ajoute la routine du coucher ; « mord » / « mâche » changent le texte des siestes. `pup.issues` est donc envoyé au serveur avec l'abonnement.
 
 Chaque événement : `{m: minutes depuis minuit, cat, ti, tx, id, quiet?, ex?}`.
@@ -135,7 +137,7 @@ Toujours utiliser `addDays(d,n)` (via `new Date(y,m,d+n)`). Ne jamais faire `get
 ## Stockage
 
 **Navigateur** (`localStorage`, chaque accès dans un `try/catch`) :
-- `pup` → `{name,birth,arrival,wake,bed,cp,city,vet,issues,example}` (fusionné avec `DEFAULT` = Buck)
+- `pup` → `{name,birth,arrival,wake,bed,meals,cp,city,vet,issues,example}` (fusionné avec `DEFAULT` = Buck)
 - `checks` → `{ "AAAA-MM-JJ": {idExercice:true, "ev:<id étape>":true, "rf:<id souci>":true} }`
 - `log` → `{ "AAAA-MM-JJ": {idSouci: nombre} }` (suivi des soucis)
 - `onboarded` → accueil déjà vu

@@ -34,6 +34,7 @@ module.exports = async (req, res) => {
     state.subs[id] = {
       sub: { endpoint: sub.endpoint, keys: { p256dh: String(sub.keys && sub.keys.p256dh || ""), auth: String(sub.keys && sub.keys.auth || "") } },
       pup: { name: clean(p.name), birth: clean(p.birth), arrival: clean(p.arrival), wake: clean(p.wake), bed: clean(p.bed),
+        meals: (Array.isArray(p.meals) ? p.meals : []).filter(x => /^\d{2}:\d{2}$/.test(x)).slice(0, 6),
         issues: (Array.isArray(p.issues) ? p.issues : []).filter(x => ISSUE_IDS.includes(x)).slice(0, 3) },
       prefs,
       tz: clean(b.tz) || "Europe/Paris",
