@@ -59,7 +59,7 @@ Module UMD : `window.CHIOT` dans le navigateur, `require("../shared.js")` dans l
 | `TIPS` | Conseils du jour (rotation par jour) |
 | `SHEETS` | Fiches thématiques `{k, ti, lead, yes[], no[], signs?, debate?, src}` |
 | `SOURCES` | Groupes `[titre, [[libellé, url], …]]` |
-| `ISSUES`, `MAX_ISSUES` | Les soucis `{id, t, ti, log:{q,k:"down"\|"up"}, why, first[], plan[], avoid[], pro, ex[], src}` ; exercices de renfort `r1`…`r15` ajoutés à `EX` (14 soucis, dont « table » : réclame aux repas, table basse) |
+| `ISSUES`, `MAX_ISSUES` | Les soucis `{id, t, ti, log:{q,k:"down"\|"up"}, why, first[], plan[], avoid[], pro, ex[], src}` ; exercices de renfort `r1`…`r16` ajoutés à `EX` (14 soucis, dont « table » : réclame aux repas, table basse) |
 | `issueEx(id,dIdx,exclude)` | Renfort du jour d'un souci (rotation, en évitant les exercices déjà au programme) |
 | `RISKS`, `ZONES`, `depOf`, `risksFor(cp,mois)` | Dangers : mois concernés, zones (listes de départements), niveau |
 | `CATS` | Catégories de rappels : `repas`, `pipi`, `educ`, `sieste`, `nuit` (libellé + emoji) |

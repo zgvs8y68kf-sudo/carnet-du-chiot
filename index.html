@@ -189,7 +189,6 @@ button.row:hover,.row.tap:hover{background:var(--fill)}
 .sos button b{font-size:.92rem;font-weight:600;line-height:1.25}
 .sos button small{font-size:.78rem;color:var(--muted)}
 .sos button:hover{background:var(--fill)}
-.sos button.urg{grid-column:1/-1}
 .sos button.urg b{color:var(--bad)}
 .switch{width:46px;height:28px;border-radius:99px;background:var(--fill);border:1px solid var(--line);position:relative;flex:none;transition:background .15s}
 .switch::after{content:"";position:absolute;top:2px;left:2px;width:22px;height:22px;border-radius:50%;background:var(--card);box-shadow:0 1px 2px rgba(0,0,0,.2);transition:transform .15s}
@@ -534,7 +533,7 @@ const SCENES={
    +mover(["205 75","138 75","138 75","168 75","168 75","168 75"],[0,.2,.3,.42,.9,1],at(0,0,dog("sniff"),1),FADE)
    +treat(["130 80","130 80"],[0,1],.5,.85)+bubble(185,22,"Oui !",.52,.86)}
 };
-const EX_ANIM={n1:"name",n2:"ping",n3:"name",n4:"come",n5:"hide",n6:"come",m1:"tug",m2:"pause",m3:"tug",m4:"tug",m5:"carry",m6:"sleep",m7:"pause",l1:"tree",l2:"tree",l3:"tree",l4:"tree",l5:"tree",l6:"sniff",p1:"potty",p2:"potty",p3:"sniff",p5:"potty",p6:"potty",b1:"sit",b2:"sit",b3:"down",b4:"mat",b6:"brush",b7:"hands",b8:"stay",b9:"bed",b5:"hands",b10:"sit",r1:"potty",r2:"potty",r3:"carry",r4:"jump",r5:"sleep",r6:"alone",r7:"tree",r8:"carry",r9:"mat",r10:"watch",r11:"watch",r12:"come",r13:"brush",r14:"mat",r15:"hands",c1:"crate",s1:"alone",s2:"alone",j1:"jump",e1:"come"};
+const EX_ANIM={n1:"name",n2:"ping",n3:"name",n4:"come",n5:"hide",n6:"come",m1:"tug",m2:"pause",m3:"tug",m4:"tug",m5:"carry",m6:"sleep",m7:"pause",l1:"tree",l2:"tree",l3:"tree",l4:"tree",l5:"tree",l6:"sniff",p1:"potty",p2:"potty",p3:"sniff",p5:"potty",p6:"potty",b1:"sit",b2:"sit",b3:"down",b4:"mat",b6:"brush",b7:"hands",b8:"stay",b9:"bed",b5:"hands",b10:"sit",r1:"potty",r2:"potty",r3:"carry",r4:"jump",r5:"sleep",r6:"alone",r7:"tree",r8:"carry",r9:"mat",r10:"watch",r11:"watch",r12:"come",r13:"brush",r14:"mat",r15:"hands",r16:"sniff",c1:"crate",s1:"alone",s2:"alone",j1:"jump",e1:"come"};
 function scene(key,label){if(!key)return "";const f=key==="hide"?()=>SCENES.come(1):SCENES[key];return f?wrap(f(),label):""}
 const REDUCE=(()=>{try{return matchMedia("(prefers-reduced-motion: reduce)").matches}catch(e){return false}})();
 function initScenes(root){root.querySelectorAll("svg.scene").forEach(s=>{
@@ -670,6 +669,7 @@ const SOS=[
  {ti:"Il est surexcité",sub:"Il court partout et mord",do:["C'est presque toujours de la fatigue.","Pipi, puis parc ou caisse avec une mâchouille ou un Kong.","Lumière douce, pas de jeu, pas de parole.","Il s'endort en général en quelques minutes."],is:"mord"},
  {ti:"Il a peur",sub:"Bruit, personne, objet",do:["Éloigne-toi de ce qui lui fait peur jusqu'à ce qu'il reprenne une friandise.","Ne le force pas, ne le gronde pas.","Parle calmement, laisse-le observer de loin.","Note ce qui l'a effrayé pour y travailler en douceur."],is:"peur"},
  {ti:"Il réclame à table",sub:"Ou vise la table basse",do:["Pas un mot, pas un regard, rien à manger.","Ramène-le calmement sur son tapis, ou barre-lui le passage avec ton corps.","Dès qu'il est sur le tapis : une croquette lancée dessus, puis d'autres toutes les 10 à 20 secondes tant qu'il y reste.","Il revient sans arrêt ce soir : parc ou barrière avec un Kong jusqu'à la fin du repas."],is:"table"},
+ {ti:"Il a un truc interdit dans la gueule",sub:"Chaussette, déchet, os…",do:["Ne cours pas après lui : pour lui, c'est un jeu, et il risque d'avaler plus vite.","Accroupis-toi, voix joyeuse, et montre une friandise de grande valeur ou son jouet préféré.","Il lâche : « Donne », friandise, puis ramasse l'objet calmement pendant qu'il mange.","Il ne lâche pas : lance quelques friandises un peu plus loin et ramasse l'objet pendant qu'il les cherche. S'il a avalé quelque chose de dangereux, appelle le vétérinaire."],is:"vol"},
  {ti:"Il a avalé quelque chose",sub:"Plante, chocolat, objet",urg:1,do:["Ne le fais pas vomir et ne lui donne rien sans avis.","Appelle ton vétérinaire avec : le poids du chiot, ce qu'il a avalé, la quantité, l'heure.","Centre antipoison vétérinaire (CNITV, Lyon) : 04 78 87 10 40, de 8 h 30 à minuit.","Urgences vétérinaires : 3115. Garde l'emballage ou un morceau de la plante."]}
 ];
 function renderIssues(){
